@@ -1,0 +1,58 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code lo
+        uses: actions/checkout@v4
+
+      - name: Java setup
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Flutter setup
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter project banao aur files daalo
+        run: |
+          flutter create --org com.spywell --platforms android --project-name property_network ../app
+          cp pubspec.yaml ../app/pubspec.yaml
+          cp lib/main.dart ../app/lib/main.dart
+          mkdir -p ../app/assets
+          cp assets/index.html ../app/assets/index.html
+          cp android/app/src/main/AndroidManifest.xml ../app/android/app/src/main/AndroidManifest.xml
+          rm -rf ../app/test
+
+      - name: APK build
+        working-directory: ../app
+        run: |
+          flutter pub get
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk $GITHUB_WORKSPACE/PropertyNetwork.apk
+
+      - name: APK save karo (Actions artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PropertyNetwork-apk
+          path: PropertyNetwork.apk
+
+      - name: Release me APK daalo (phone se seedha download)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Property Network v1.0.${{ github.run_number }}
+          files: PropertyNetwork.apk

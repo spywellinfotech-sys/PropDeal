@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Property Network</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one narrow column of contact cards, sticky filter bar, big tap targets for calling on a phone */
+:root{
+  --bg:#F2F5F2; --surface:#FFFFFF; --fg:#16201C; --muted:#53605A; --line:#DCE3DE;
+  --accent:#0E6655; --accent-fg:#FFFFFF; --soft:#DCEFE8; --soft-fg:#0A4F42;
+  --good:#1E7A3C; --good-bg:#E1F2E6; --warn:#8A5A00; --warn-bg:#FBF0D6; --bad:#9A2F22; --bad-bg:#FBE5E1; --info:#1F4F8A; --info-bg:#E3ECF8;
+  --font:"Mukta","Nirmala UI","Noto Sans Devanagari",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1412; --surface:#17201C; --fg:#E7EEEA; --muted:#9BA9A2; --line:#2A3631;
+  --accent:#3DB89B; --accent-fg:#04231B; --soft:#1C3A32; --soft-fg:#A9E5D5;
+  --good:#7AD39A; --good-bg:#183A25; --warn:#E8C46A; --warn-bg:#3A2F12; --bad:#F09A8C; --bad-bg:#3D1F1A; --info:#9CC0EE; --info-bg:#1B2B42;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1412; --surface:#17201C; --fg:#E7EEEA; --muted:#9BA9A2; --line:#2A3631;
+  --accent:#3DB89B; --accent-fg:#04231B; --soft:#1C3A32; --soft-fg:#A9E5D5;
+  --good:#7AD39A; --good-bg:#183A25; --warn:#E8C46A; --warn-bg:#3A2F12; --bad:#F09A8C; --bad-bg:#3D1F1A; --info:#9CC0EE; --info-bg:#1B2B42;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{margin:0;font-size:28px;font-weight:800;line-height:1.15;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted);font-size:15px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lang{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;height:44px;padding:0 16px;font-weight:700}
+.progress{display:flex;gap:10px;flex-wrap:wrap}
+.stat{flex:1 1 120px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.stat b{display:block;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat span{font-size:13px;color:var(--muted);font-weight:600}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
+.search{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:0 14px;font-size:16px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:15px;white-space:nowrap}
+.chip small{color:var(--muted);font-weight:600;margin-left:4px;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.chip[aria-pressed="true"] small{color:inherit;opacity:.85}
+.row2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.check{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;min-height:40px;margin-left:auto}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+details.msg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 14px}
+details.msg summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+details.msg textarea{width:100%;min-height:110px;border-radius:10px;border:1px solid var(--line);background:var(--bg);padding:10px;font-size:15px;margin-bottom:6px}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.list{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.name{margin:0;font-size:18px;font-weight:700;line-height:1.3;min-width:0;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:14px;color:var(--muted);align-items:center}
+.pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--soft-fg);white-space:nowrap}
+.star{color:var(--warn);font-weight:700}
+.phone{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;user-select:all}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.btn{height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:16px;text-decoration:none;border:1px solid transparent}
+.btn svg{flex:none}
+.call{background:var(--accent);color:var(--accent-fg)}
+.wa{background:var(--soft);color:var(--soft-fg)}
+.btn.dis{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:600;font-size:14px;cursor:default}
+.foot{display:flex;gap:8px;align-items:center}
+.foot select{flex:1;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);padding:0 10px;font-size:15px;min-width:0}
+.copy{height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:14px;flex:none}
+.st{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.st-called{background:var(--info-bg);color:var(--info)} .st-interested{background:var(--warn-bg);color:var(--warn)}
+.st-joined{background:var(--good-bg);color:var(--good)} .st-no,.st-dead{background:var(--bad-bg);color:var(--bad)}
+.empty{text-align:center;color:var(--muted);padding:30px 0}
+.note{font-size:13px;color:var(--muted);text-align:center;margin:6px 0 0}
+@media (prefers-reduced-motion:no-preference){.btn,.chip{transition:filter .15s}.btn:active,.chip:active{filter:brightness(.92)}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 data-t="title"></h1>
+      <p class="sub" data-t="sub"></p>
+    </div>
+    <button class="lang" id="lang" type="button"></button>
+  </header>
+
+  <div class="progress">
+    <div class="stat"><b id="sTotal">0</b><span data-t="sTotal"></span></div>
+    <div class="stat"><b id="sCalled">0</b><span data-t="sCalled"></span></div>
+    <div class="stat"><b id="sJoined">0</b><span data-t="sJoined"></span></div>
+  </div>
+
+  <details class="msg">
+    <summary data-t="msgTitle"></summary>
+    <p class="hint" data-t="msgHint"></p>
+    <label for="msgBox" class="hint" style="display:block;margin:0 0 6px;font-weight:600" data-t="msgLabel"></label>
+    <textarea id="msgBox"></textarea>
+    <p class="hint"><button type="button" class="copy" id="msgReset" data-t="msgReset"></button></p>
+  </details>
+
+  <div class="bar">
+    <label for="q" class="hint" style="position:absolute;left:-9999px" data-t="search"></label>
+    <input id="q" class="search" type="search" autocomplete="off">
+    <div class="chips" id="cities" role="group"></div>
+    <div class="row2">
+      <div class="chips" id="types" role="group"></div>
+      <label class="check"><input type="checkbox" id="onlyPhone" checked><span data-t="onlyPhone"></span></label>
+    </div>
+  </div>
+
+  <div class="list" id="list"></div>
+  <p class="note" data-t="note"></p>
+</div>
+
+<script>
+var DATA = [{"id": 0, "c": "Saharanpur", "t": "", "n": "Sector 99 Township", "ty": "Builder", "p": "+91 63977 06494", "w": true, "r": 4.2, "v": 136, "a": "Near hasanpur chungi circle Near Suncity Grand colony, Rajwaha patri, WGCW+42M"}, {"id": 1, "c": "Saharanpur", "t": "", "n": "Construction Ease", "ty": "Builder", "p": "+91 95486 04470", "w": true, "r": 4.9, "v": 57, "a": "Paramount tulip, N69, Delhi Rd"}, {"id": 2, "c": "Saharanpur", "t": "", "n": "Himalaye Associates Himalaye Properties", "ty": "Dealer", "p": "+91 90459 67475", "w": true, "r": 4.9, "v": 41, "a": "Adda Himalaye City, Bus Stop, Janta Rd"}, {"id": 3, "c": "Saharanpur", "t": "", "n": "Akshardham Greens", "ty": "Dealer", "p": "+91 79061 19942", "w": true, "r": 4.9, "v": 36, "a": "Mini bypaas, near delhi road, Saharanpur"}, {"id": 4, "c": "Saharanpur", "t": "", "n": "MK Property Advisor", "ty": "Dealer", "p": "+91 97605 19704", "w": true, "r": 4.5, "v": 26, "a": "Gali no:-5, Shakumbari Vihar, Madhav Nagar"}, {"id": 5, "c": "Saharanpur", "t": "", "n": "Construction Village", "ty": "Builder", "p": "+91 93194 58565", "w": true, "r": 5, "v": 13, "a": "Office 37A, SeaRock Building, paramount tulip"}, {"id": 6, "c": "Saharanpur", "t": "", "n": "Shivam Properties", "ty": "Dealer", "p": "+91 70176 51611", "w": true, "r": 5, "v": 11, "a": "Ganpati Vihar Colony, Janta Rd, Pushpanjali Vihar"}, {"id": 7, "c": "Saharanpur", "t": "", "n": "Arsh Properties Saharanpur", "ty": "Dealer", "p": "+91 93581 71730", "w": true, "r": 5, "v": 9, "a": "Gill Colony, Saharanpur"}, {"id": 8, "c": "Saharanpur", "t": "", "n": "Property Dealer", "ty": "Dealer", "p": "+91 80060 52005", "w": true, "r": 4.6, "v": 9, "a": "jain college road, Vijay Colony, Pawan Vihar"}, {"id": 9, "c": "Saharanpur", "t": "", "n": "Plot in saharanpur", "ty": "Builder", "p": "+91 97977 66422", "w": true, "r": 4.8, "v": 4, "a": "Durga Puri, 1665, Kamela Colony Rd"}, {"id": 10, "c": "Saharanpur", "t": "", "n": "OM DEV ASSOCIATES / PROPERTY CONSULTANTS / AGRICULTURE LAND DEALER/ PROPERTY DEALER", "ty": "Dealer", "p": "+91 86500 55505", "w": true, "r": 5, "v": 3, "a": "PARAMOUNT TULIP, N-59, Delhi - Saharanpur Rd"}, {"id": 11, "c": "Saharanpur", "t": "", "n": "Famous Realestate Group", "ty": "Dealer", "p": null, "w": false, "r": 5, "v": 3, "a": "Saharanpur Rd - Behat, near Jama Masjid, Rasoolpur"}, {"id": 12, "c": "Saharanpur", "t": "", "n": "Shri Radha Krishna Property Advisor", "ty": "Dealer", "p": null, "w": false, "r": 5, "v": 2, "a": "Dhingra marble lane, Delhi - Saharanpur Rd, South City Extension"}, {"id": 13, "c": "Saharanpur", "t": "", "n": "Ridhi Sidhi properties", "ty": "Dealer", "p": null, "w": false, "r": 5, "v": 2, "a": "Balaji Dham, Near, Behat Rd"}, {"id": 14, "c": "Saharanpur", "t": "", "n": "Srishti vihar", "ty": "Builder", "p": null, "w": false, "r": 5, "v": 1, "a": "Srishti Vihar, Janta Rd, near Asha modern International school"}, {"id": 15, "c": "Saharanpur", "t": "", "n": "Plot for sale", "ty": "Builder", "p": null, "w": false, "r": null, "v": null, "a": "XHFG+WWH, near parag dairy kaamdhenu industries areaHanumat Vatika, XHFG+WVM"}, {"id": 16, "c": "Karnal", "t": "", "n": "JMD Properties", "ty": "Dealer", "p": "+91 99910 00537", "w": true, "r": 5, "v": 311, "a": "191, R, Model Town"}, {"id": 17, "c": "Karnal", "t": "", "n": "CHD City Karnal (Site Office)", "ty": "Builder", "p": "+91 89294 00100", "w": true, "r": 3.6, "v": 299, "a": "SCO 16-17, CHD Site Office CHD City, NH-1"}, {"id": 18, "c": "Karnal", "t": "", "n": "Signature Global City", "ty": "Builder", "p": "+91 85109 20920", "w": true, "r": 4, "v": 255, "a": "Sector 28, Alpha International City, Karnal"}, {"id": 19, "c": "Karnal", "t": "", "n": "Goyal Property Centre", "ty": "Dealer", "p": "+91 95186 76594", "w": true, "r": 4.8, "v": 64, "a": "DSS - 194, HSVP Market, Saini Colony"}, {"id": 20, "c": "Karnal", "t": "", "n": "SRI KRISHNA ESTATE", "ty": "Dealer", "p": "+91 97290 05302", "w": true, "r": 4.9, "v": 54, "a": "2222, Virk farm House, opp. Community Centre"}, {"id": 21, "c": "Karnal", "t": "", "n": "Karnal Realty", "ty": "Dealer", "p": "+91 93553 12345", "w": true, "r": 5, "v": 51, "a": "99 Main, Kailash Rd, near N. S. Petrol Pump"}, {"id": 22, "c": "Karnal", "t": "", "n": "Chhabra Properties and Financial Services", "ty": "Dealer", "p": "+91 82228 33304", "w": true, "r": 5, "v": 48, "a": "162 R, 162R, Officers Colony"}, {"id": 23, "c": "Karnal", "t": "", "n": "Dhawan Properties", "ty": "Dealer", "p": "+91 98130 13885", "w": true, "r": 5, "v": 38, "a": "near Noor Mahal Chowk, Sector - 33, Karnal"}, {"id": 24, "c": "Karnal", "t": "", "n": "BHARAT ENCLAVE", "ty": "Builder", "p": "+91 80060 08180", "w": true, "r": 4.8, "v": 18, "a": "Sec-28A, near Alpha City, Sector 28"}, {"id": 25, "c": "Karnal", "t": "", "n": "Khara Associate & Real Estate", "ty": "Dealer", "p": "+91 99928 00013", "w": true, "r": 5, "v": 12, "a": "520, New Prem Nagar, Friends Colony"}, {"id": 26, "c": "Karnal", "t": "", "n": "RCNP Builders & Developers", "ty": "Builder", "p": "+91 70264 55555", "w": true, "r": 4.8, "v": 8, "a": "180-C, Officers Colony, Model Town"}, {"id": 27, "c": "Karnal", "t": "", "n": "OPS Divine Greens", "ty": "Builder", "p": "+91 70428 66223", "w": true, "r": 4.3, "v": 8, "a": "OPS Divine Greens, Village Gangar and Shamgarh, Tehsil Nilokheri"}, {"id": 28, "c": "Karnal", "t": "", "n": "Jap Developers", "ty": "Builder", "p": "+91 184 404 1456", "w": false, "r": 5, "v": 2, "a": "180-C, Karnal - Kaithal Road, Officers Colony"}, {"id": 29, "c": "Karnal", "t": "", "n": "Karnal Property Hub", "ty": "Dealer", "p": null, "w": false, "r": 4.9, "v": 54, "a": "Batra Steel Industries, near indian Bank, phoosgarh"}, {"id": 30, "c": "Karnal", "t": "", "n": "Shubham Properties", "ty": "Dealer", "p": null, "w": false, "r": 4.6, "v": 18, "a": "SCO - 1173, Urban Estate, Sector 32"}, {"id": 31, "c": "Karnal", "t": "", "n": "OPS REALTY PRIVATE LIMITED", "ty": "Dealer", "p": null, "w": false, "r": 5, "v": 6, "a": "OPS Realty Corporate Office - OPS Plaza, OPS Realty, OPS Plaza"}, {"id": 32, "c": "Karnal", "t": "", "n": "Plot for sale", "ty": "Builder", "p": null, "w": false, "r": 5, "v": 2, "a": "285, Pingli - Karnal Rd, Shakti Colony"}, {"id": 33, "c": "Yamunanagar", "t": "", "n": "KAKKAR PROPERTY ADVISOR", "ty": "Dealer", "p": "+91 97293 79701", "w": true, "r": 4.9, "v": 107, "a": "Workshop Rd, near GABA PALACE, Harbanspura Colony"}, {"id": 34, "c": "Yamunanagar", "t": "Jagadhri", "n": "Bhaskar Properties", "ty": "Dealer", "p": "+91 87088 70495", "w": true, "r": 4.9, "v": 57, "a": "SCO 37 SEC-17 REDCROSS MARKET, Sector 17, Huda"}, {"id": 35, "c": "Yamunanagar", "t": "", "n": "Dutta Associates", "ty": "Dealer", "p": "+91 98961 13203", "w": true, "r": 4.2, "v": 26, "a": "133, opposite, Santpura Gurudwara Rd"}, {"id": 36, "c": "Yamunanagar", "t": "", "n": "The Palm City - Yamuna Nagar", "ty": "Builder", "p": "+91 90345 42121", "w": true, "r": 4.3, "v": 26, "a": "Sector 12, Sasouli Rd, near Kheri Rangdhan"}, {"id": 37, "c": "Yamunanagar", "t": "", "n": "JASSAL PROPERTY ADVISOR", "ty": "Dealer", "p": "+91 90348 53613", "w": true, "r": 5, "v": 26, "a": "Shop no.13, Industrial training Institute, sisauli road"}, {"id": 38, "c": "Yamunanagar", "t": "", "n": "Guru kirpa property advisor , Real estate , ynr", "ty": "Dealer", "p": "+91 98965 80499", "w": true, "r": 4.8, "v": 24, "a": "near mln college cycle stand, Yamuna Nagar"}, {"id": 39, "c": "Yamunanagar", "t": "Jagadhri", "n": "Emperium Resortico", "ty": "Builder", "p": "+91 76767 69009", "w": true, "r": 4, "v": 24, "a": "Emperium Resortico, Emperium Private Limited, Jagadhri"}, {"id": 40, "c": "Yamunanagar", "t": "", "n": "Chauhan construction", "ty": "Builder", "p": "+91 95181 61140", "w": true, "r": 4.8, "v": 22, "a": "Gali Number 13 Azad Nagar, East Bhatia Nagar, Yamuna Nagar"}, {"id": 41, "c": "Yamunanagar", "t": "", "n": "Forteasia Flower Valley - Yamuna Nagar", "ty": "Builder", "p": "+91 90345 42121", "w": true, "r": 4.5, "v": 8, "a": "Sector-25, Yamuna Nagar"}, {"id": 42, "c": "Yamunanagar", "t": "", "n": "NOOK CITY", "ty": "Builder", "p": "+91 98120 16199", "w": true, "r": 4.9, "v": 7, "a": "5742+53F, Kheri Ranghran, Yamuna Nagar"}, {"id": 43, "c": "Yamunanagar", "t": "", "n": "Mehta Property Broker", "ty": "Dealer", "p": "+91 89508 28166", "w": true, "r": 5, "v": 5, "a": "#254, model colony, model colony"}, {"id": 44, "c": "Yamunanagar", "t": "Jagadhri", "n": "Swastik Properties Advisor", "ty": "Dealer", "p": null, "w": false, "r": 4.4, "v": 12, "a": "Shop no. 3, Jagadhri workshop, near hdfc bank"}, {"id": 45, "c": "Yamunanagar", "t": "Jagadhri", "n": "Professor colony. Yamuna nagar", "ty": "Builder", "p": null, "w": false, "r": 4.4, "v": 7, "a": "154, Professor Colony, Krishna Colony"}, {"id": 46, "c": "Yamunanagar", "t": "", "n": "Chawla colony", "ty": "Builder", "p": null, "w": false, "r": 5, "v": 2, "a": "Tagore Garden, Model Town, Yamuna Nagar"}, {"id": 47, "c": "Dehradun", "t": "", "n": "Uttarakhand Housing Developers", "ty": "Dealer", "p": "+91 95282 42511", "w": true, "r": 4.9, "v": 326, "a": "7XVW+FXM, Subhash Nagar, Dehradun"}, {"id": 48, "c": "Dehradun", "t": "", "n": "P A Properties", "ty": "Dealer", "p": "+91 90129 98877", "w": true, "r": 4.9, "v": 322, "a": "776/3, Indra Nagar Colony, Dehradun"}, {"id": 49, "c": "Dehradun", "t": "", "n": "KHER DEVELOPERS", "ty": "Builder", "p": "+91 70559 00083", "w": true, "r": 4.3, "v": 226, "a": "Shivalik Tower, o, pp. Indian Oil Petrol Pump"}, {"id": 50, "c": "Dehradun", "t": "", "n": "Sadana Constructions & Real Estate", "ty": "Dealer", "p": "+91 63989 59081", "w": true, "r": 4.8, "v": 216, "a": "Meridian homes, 3, 301"}, {"id": 51, "c": "Dehradun", "t": "", "n": "Bhuppi Property Dehradun", "ty": "Dealer", "p": "+91 84496 43202", "w": true, "r": 5, "v": 204, "a": "Bhuppi property, Dhyani Complex Rd, near pnb atm chowk"}, {"id": 52, "c": "Dehradun", "t": "", "n": "Tandon Properties", "ty": "Dealer", "p": "+91 94120 75428", "w": true, "r": 4.8, "v": 174, "a": "1st Floor, Mussoorie Diversion, Pacific Hills"}, {"id": 53, "c": "Dehradun", "t": "", "n": "The Reallsters-Property Dealers in Dehradun", "ty": "Dealer", "p": "+91 94120 51495", "w": true, "r": 4.8, "v": 156, "a": "48 Raja Road, PLS Plaza, Gandhi Rd"}, {"id": 54, "c": "Dehradun", "t": "", "n": "Gupta's Evergreen Developers LLP | Top Construction Company in Dehradun", "ty": "Builder", "p": "+91 95483 93798", "w": true, "r": 5, "v": 145, "a": "RTO Office, 105, Rajpur Rd"}, {"id": 55, "c": "Dehradun", "t": "", "n": "MB Associate", "ty": "Dealer", "p": "+91 92582 95216", "w": true, "r": 4.9, "v": 133, "a": "Third Floor, MB business center, Sahastradhara Rd"}, {"id": 56, "c": "Dehradun", "t": "", "n": "Aneja Realtors", "ty": "Dealer", "p": "+91 70176 31719", "w": true, "r": 5, "v": 61, "a": "SHOP NO 9, Canal Rd, opp. SUPERIA APARTMENTS"}, {"id": 57, "c": "Dehradun", "t": "", "n": "SHRIUTTAM PROPERTIES", "ty": "Dealer", "p": "+91 72172 66339", "w": true, "r": 4.7, "v": 52, "a": "13, Cement Rd, Block II"}, {"id": 58, "c": "Dehradun", "t": "", "n": "AGS Realtors & Construction", "ty": "Dealer", "p": "+91 96902 51869", "w": true, "r": 5, "v": 51, "a": "Sahastradhara Rd, B Block, Aman Vihar"}, {"id": 59, "c": "Dehradun", "t": "", "n": "HillScape Realty | Property Dealer in Dehradun | Best Property Dealers in Dehradun", "ty": "Dealer", "p": "+91 88600 88867", "w": true, "r": 5, "v": 47, "a": "Johri Gaon, Sinola Road, near Tulla's Green"}, {"id": 60, "c": "Dehradun", "t": "", "n": "Future Nest Property | Property Dealer In Dehradun", "ty": "Dealer", "p": "+91 63981 09371", "w": true, "r": 5, "v": 42, "a": "75/11, Rajpur Rd, Ravindrapuri"}, {"id": 61, "c": "Dehradun", "t": "", "n": "Iconic Tower by Nilaya Heights | RBS Developers | 4bhk Luxury Flats in Dehradun", "ty": "Builder", "p": "+91 99973 32000", "w": true, "r": 4.6, "v": 37, "a": "Nilaya Hills, NH-72, ISBT Turner Rd"}, {"id": 62, "c": "Dehradun", "t": "", "n": "Flats In Dehradun", "ty": "Dealer", "p": "+91 88513 48859", "w": true, "r": 4.5, "v": 35, "a": "Flats In, Sahastradhara Rd, opp. Pacific Golf Estate"}, {"id": 63, "c": "Dehradun", "t": "", "n": "Blissroof Developers | Builder | Real Estate Promoter | Turnkey Construction Company in Dehradun", "ty": "Dealer", "p": "+91 85888 36154", "w": true, "r": 4.9, "v": 23, "a": "10, Chander Rd, opposite Welham Girls School"}, {"id": 64, "c": "Dehradun", "t": "", "n": "Best Developers & Builders", "ty": "Builder", "p": "+91 75368 44446", "w": true, "r": 4.4, "v": 15, "a": "121, Rajpur Rd, Jakhan"}, {"id": 65, "c": "Haridwar", "t": "", "n": "Shivam Sadana Property/Real estate Professional", "ty": "Dealer", "p": "+91 86303 14847", "w": true, "r": 4.9, "v": 235, "a": "shop no 08, 2nd floor, Royal Plaza Complex"}, {"id": 66, "c": "Haridwar", "t": "", "n": "Haridwar One", "ty": "Builder", "p": "+91 95631 19563", "w": true, "r": 4.2, "v": 181, "a": "Dudhadhari Chowk, behind Ganga Swaroop Ashram, Satyam Vihar Colony"}, {"id": 67, "c": "Haridwar", "t": "", "n": "Spira Estate", "ty": "Dealer", "p": "+91 99907 70055", "w": true, "r": 4.9, "v": 106, "a": "Ranipur, Jhal, beside Bhumanand Hospital"}, {"id": 68, "c": "Haridwar", "t": "", "n": "PRAGATI PROPERTIES", "ty": "Dealer", "p": "+91 93190 27722", "w": true, "r": 5, "v": 94, "a": "ANOOP KUMAR, 25 YOGI VIHAR, NEAR HOTEL CLASSIC RESIDENCY"}, {"id": 69, "c": "Haridwar", "t": "", "n": "Sky Liner Builders", "ty": "Builder", "p": "+91 70171 07466", "w": true, "r": 5, "v": 88, "a": "49, Ranipur More, Govindpuri"}, {"id": 70, "c": "Haridwar", "t": "", "n": "Radhey Radhey Properties", "ty": "Dealer", "p": "+91 70602 00165", "w": true, "r": 5, "v": 49, "a": "S 291, S Block, S Cluster"}, {"id": 71, "c": "Haridwar", "t": "", "n": "Satya Properties", "ty": "Dealer", "p": "+91 87553 63911", "w": true, "r": 4.7, "v": 22, "a": "to, jatwara pul road, near Trimurti Mandir"}, {"id": 72, "c": "Haridwar", "t": "", "n": "Haridwar Properties", "ty": "Dealer", "p": "+91 95821 00269", "w": true, "r": 5, "v": 16, "a": "Hari Ashray Nagar, behind Patanjali Research Institute, Phase-1"}, {"id": 73, "c": "Haridwar", "t": "", "n": "The J.S. realtors", "ty": "Dealer", "p": "+91 81711 17871", "w": true, "r": 5, "v": 12, "a": "565, krishna nagar, opposite petrol pump"}, {"id": 74, "c": "Haridwar", "t": "", "n": "Shree luxmi construction & property", "ty": "Dealer", "p": "+91 72485 10665", "w": true, "r": 5, "v": 8, "a": "Old, Ranipur More, next to grean leaf cafe"}, {"id": 75, "c": "Haridwar", "t": "", "n": "Shri khatu shyam ji property consultant", "ty": "Dealer", "p": "+91 83940 05161", "w": true, "r": 5, "v": 7, "a": "Block f, New Shivalik Nagar, Haridwar"}, {"id": 76, "c": "Haridwar", "t": "", "n": "A.S Developers", "ty": "Dealer", "p": "+91 99972 43210", "w": true, "r": 5, "v": 1, "a": "Opp. Neelkanth Netralaya Laksar Road Jagjeetpur, Kankhal, Haridwar"}, {"id": 77, "c": "Roorkee", "t": "", "n": "Panwar Properties", "ty": "Dealer", "p": "+91 81719 28608", "w": true, "r": 5, "v": 306, "a": "L-3 south civil line, near Delhi Road, Roorkee Cantonment"}, {"id": 78, "c": "Roorkee", "t": "", "n": "CBS Properties", "ty": "Dealer", "p": "+91 88659 02700", "w": true, "r": 5, "v": 271, "a": "Delhi Rd, near Hyundai showroom, Roorkee"}, {"id": 79, "c": "Roorkee", "t": "", "n": "Kartik Properties", "ty": "Dealer", "p": "+91 98976 31001", "w": true, "r": 5, "v": 136, "a": "shop no.22, Pride complex, Prem Mandir Rd"}, {"id": 80, "c": "Roorkee", "t": "", "n": "Welcome Group Property Roorkee", "ty": "Dealer", "p": "+91 82734 69888", "w": true, "r": 5, "v": 16, "a": "Roorkee Main Road, near Bus Stand, Manglaur"}, {"id": 81, "c": "Roorkee", "t": "", "n": "Lakshmi Narayan Real Estate Developer", "ty": "Dealer", "p": "+91 90123 15335", "w": true, "r": 5, "v": 7, "a": "Near New, Court, Arya Samaj Road"}, {"id": 82, "c": "Roorkee", "t": "", "n": "Tyagi Properties", "ty": "Dealer", "p": null, "w": false, "r": 5, "v": 25, "a": "Delhi Rd, opposite state bank, Roorkee Cantonment"}, {"id": 83, "c": "Roorkee", "t": "", "n": "SHARDA BUILDERS AND CONSULTANCY", "ty": "Builder", "p": null, "w": false, "r": 4.7, "v": 7, "a": "Prem Mandir Rd, Civil Lines, Roorkee"}, {"id": 84, "c": "Roorkee", "t": "", "n": "Coupler Construction and Developers", "ty": "Builder", "p": null, "w": false, "r": 4.3, "v": 3, "a": "Haridwar Rd, majra, Roorkee"}, {"id": 85, "c": "Roorkee", "t": "", "n": "Amayra Developers", "ty": "Builder", "p": null, "w": false, "r": 5, "v": 1, "a": "4, Civil Lines, Roorkee"}, {"id": 86, "c": "Rishikesh", "t": "", "n": "Saizee Properties - Buy Property In Rishikesh", "ty": "Dealer", "p": "+91 98370 60406", "w": true, "r": 4.8, "v": 464, "a": "4, Akhand Ashram, Haridwar Rd"}, {"id": 87, "c": "Rishikesh", "t": "", "n": "Srivaas Group", "ty": "Builder", "p": "+91 84709 83637", "w": true, "r": 4.2, "v": 108, "a": "kamal kants place, 365, near Haridwar Road"}, {"id": 88, "c": "Rishikesh", "t": "", "n": "Gangotri Properties", "ty": "Dealer", "p": "+91 95578 39999", "w": true, "r": 4.6, "v": 55, "a": "Bajranj Market, Maya Kund Rishikesh, 4842+MHJ"}, {"id": 89, "c": "Rishikesh", "t": "", "n": "Manhar Properties", "ty": "Dealer", "p": "+91 73006 56721", "w": true, "r": 4, "v": 40, "a": "Shop -2, Ghat Rd, Mayakund"}, {"id": 90, "c": "Rishikesh", "t": "", "n": "The Hills Property Dealer in Rishikesh", "ty": "Dealer", "p": "+91 97196 75530", "w": true, "r": 5, "v": 17, "a": "Laxman Jhula Rd, Narendranagar, Swarg Ashram"}, {"id": 91, "c": "Rishikesh", "t": "", "n": "Aradhana Builders Pvt. Ltd.", "ty": "Builder", "p": "+91 98370 73742", "w": true, "r": 3.8, "v": 10, "a": "3rd Floor, City Centre, Dehradun Rd"}, {"id": 92, "c": "Rishikesh", "t": "", "n": "Shivalik Infrastructure & Developer", "ty": "Dealer", "p": "+91 97600 15725", "w": true, "r": 4.6, "v": 7, "a": "40/2, Railway Station Rd, opp. HDFC Bank"}, {"id": 93, "c": "Rishikesh", "t": "", "n": "GrihaSaarthi Private Limited (Gupta Properties)", "ty": "Dealer", "p": null, "w": false, "r": 4.9, "v": 140, "a": "275, Virbhadra Rd, Avas Vikas Colony"}, {"id": 94, "c": "Rishikesh", "t": "", "n": "VIGTEZ REALTY - Real Estate Developers & Consultants", "ty": "Dealer", "p": null, "w": false, "r": 5, "v": 1, "a": "Negi complex, opposite RTO Office, Khand Gaon"}, {"id": 95, "c": "Panipat", "t": "", "n": "GUPTA PROPERTIES", "ty": "Dealer", "p": "+91 98968 17176", "w": true, "r": 5, "v": 213, "a": "MAIN, Barsat Rd, near SUPRITI HOSPITAL"}, {"id": 96, "c": "Panipat", "t": "", "n": "New Heights Properties : Property Dealer in Panipat", "ty": "Dealer", "p": "+91 89500 09915", "w": true, "r": 5, "v": 112, "a": "TDI Club, 38-39, Huda Sector"}, {"id": 97, "c": "Panipat", "t": "", "n": "Unicorn Luxury Infra Pvt Ltd", "ty": "Dealer", "p": "+91 97162 40867", "w": true, "r": 5, "v": 81, "a": "Office no 115 First Floor, Tdi city center, TDI Housing St"}, {"id": 98, "c": "Panipat", "t": "", "n": "K.K. Properties", "ty": "Dealer", "p": "+91 93558 00008", "w": true, "r": 4.9, "v": 65, "a": "Housing Board, 1813, COLONY"}, {"id": 99, "c": "Panipat", "t": "", "n": "Manveet Properties-Property Consultant in Panipat", "ty": "Dealer", "p": "+91 90682 60002", "w": true, "r": 5, "v": 58, "a": "First Floor, SCO 83, Sector - 18"}, {"id": 100, "c": "Panipat", "t": "", "n": "Mahaluxmi Properties", "ty": "Dealer", "p": "+91 82219 00054", "w": true, "r": 4.9, "v": 29, "a": "Villa No A, 145, TDI city"}, {"id": 101, "c": "Panipat", "t": "", "n": "Trident Realty Panipat", "ty": "Dealer", "p": "+91 91383 31357", "w": true, "r": 4.6, "v": 12, "a": "Trident, Sector 19A, Nizampur"}, {"id": 102, "c": "Panipat", "t": "", "n": "Bhutani Developers", "ty": "Dealer", "p": "+91 98120 01625", "w": true, "r": 4.5, "v": 6, "a": "Sector 23, Ekta Vihar, Panipat"}, {"id": 103, "c": "Panipat", "t": "", "n": "TDI CONNAUGHT ESTATE", "ty": "Dealer", "p": null, "w": false, "r": 4.1, "v": 112, "a": "Sector 23, Phase 2, Sector 25"}, {"id": 104, "c": "Panipat", "t": "", "n": "Mohan Properties & Builders .", "ty": "Dealer", "p": null, "w": false, "r": 5, "v": 3, "a": "23, Sector 25, Huda"}, {"id": 105, "c": "Ambala", "t": "", "n": "Bala Ji Properties", "ty": "Dealer", "p": "+91 94666 67226", "w": true, "r": 4.6, "v": 58, "a": "booth no.64, Bala ji properties, shopping complex"}, {"id": 106, "c": "Ambala", "t": "", "n": "Prince Properties", "ty": "Dealer", "p": "+91 94161 87388", "w": true, "r": 4.6, "v": 38, "a": "Jalbera Rd, Friends Colony, Manav Chowk"}, {"id": 107, "c": "Ambala", "t": "", "n": "Best Property dealer in ambala Property Dealer.com", "ty": "Dealer", "p": "+91 98120 14032", "w": true, "r": 4.9, "v": 22, "a": "near Punjab National Bank, Durga Nagar, Ambala"}, {"id": 108, "c": "Ambala", "t": "", "n": "JASN PROPERTIES", "ty": "Dealer", "p": "+91 82955 30333", "w": true, "r": 4.7, "v": 20, "a": "SCO NO.3, Jandli Rd, Jandali Village"}, {"id": 109, "c": "Ambala", "t": "", "n": "Jindal Real Estate Developers", "ty": "Dealer", "p": "+91 98966 70916", "w": true, "r": 4.9, "v": 16, "a": "1st Floor, S.C.F.9, Vikas Vihar"}, {"id": 110, "c": "Ambala", "t": "", "n": "Vision Construction Co.", "ty": "Builder", "p": "+91 97291 91999", "w": true, "r": 5, "v": 16, "a": "D6/18, Block-D, Vatika City Central"}, {"id": 111, "c": "Ambala", "t": "", "n": "BALA JEE PROPERTY DEALER", "ty": "Dealer", "p": "+91 98132 27709", "w": true, "r": 4.7, "v": 15, "a": "near, Dhulkot Station Rd, Geeta Nagari"}, {"id": 112, "c": "Ambala", "t": "", "n": "ROHANSH DEVELOPERS PVT LTD | Real estate agent in Ambala | property dealer in ambala | Industrial plot in Ambala/tolet ambala", "ty": "Dealer", "p": "+91 72066 58556", "w": true, "r": 5, "v": 12, "a": "Shopping Complex, Parashuram Colony, Sector 9"}, {"id": 113, "c": "Ambala", "t": "", "n": "Real Properties & Builders", "ty": "Dealer", "p": "+91 98964 51044", "w": true, "r": 5, "v": 3, "a": "kallerheri road, Sector D, Defence Colony"}, {"id": 114, "c": "Ambala", "t": "", "n": "Rana properties land developers", "ty": "Dealer", "p": "+91 94162 23989", "w": true, "r": 5, "v": 2, "a": "Kalerheri road, Sector D, Defence Colony"}];
+var CITIES = ['Saharanpur','Karnal','Yamunanagar','Dehradun','Haridwar','Roorkee','Rishikesh','Panipat','Ambala'];
+var CITY_HI = {Saharanpur:'सहारनपुर',Karnal:'करनाल',Yamunanagar:'यमुनानगर',Dehradun:'देहरादून',Haridwar:'हरिद्वार',Roorkee:'रुड़की',Rishikesh:'ऋषिकेश',Panipat:'पानीपत',Ambala:'अंबाला',Jagadhri:'जगाधरी'};
+var STATUSES = ['called','interested','joined','no','dead'];
+var T = {
+  hi: {
+    title:'प्रॉपर्टी नेटवर्क', sub:'9 शहरों के प्रॉपर्टी डीलर और बिल्डर। सीधे कॉल या WhatsApp करें।',
+    lang:'Hinglish', sTotal:'कुल नंबर', sCalled:'से बात हुई', sJoined:'नेटवर्क में जुड़े',
+    msgTitle:'WhatsApp परिचय संदेश', msgHint:'WhatsApp बटन दबाने पर यही संदेश भरा हुआ खुलेगा। {name} की जगह अपने आप उनका नाम आ जाएगा।',
+    msgLabel:'संदेश बदलें', msgReset:'पहले वाला संदेश वापस लाएँ',
+    search:'नाम या इलाका खोजें', all:'सभी', dealer:'डीलर', builder:'बिल्डर', onlyPhone:'सिर्फ नंबर वाले',
+    call:'कॉल करें', wa:'WhatsApp', landline:'लैंडलाइन, WhatsApp नहीं', nophone:'नंबर नहीं मिला',
+    copy:'नंबर कॉपी', copied:'कॉपी हो गया', reviews:'रिव्यू', status:'स्टेटस चुनें',
+    st:{called:'कॉल किया',interested:'रुचि है',joined:'नेटवर्क में जुड़ गए',no:'रुचि नहीं',dead:'नंबर बंद'},
+    empty:'कोई नतीजा नहीं मिला। खोज या फ़िल्टर बदलें।',
+    note:'स्टेटस इसी फ़ोन में सेव रहता है। कॉल बटन न चले तो नंबर कॉपी करके डायल करें। डेटा: Google Maps, 23 अक्टूबर 2026।',
+    defMsg:'नमस्ते {name} जी, मैं [आपका नाम], प्रॉपर्टी डीलर हूँ। आपके इलाके में खरीदार या प्रॉपर्टी हो तो मिलकर काम कर सकते हैं, कमीशन शेयर करेंगे। क्या हम जुड़ सकते हैं?'
+  },
+  en: {
+    title:'Property Network', sub:'9 cities ke property dealers aur builders. Seedha call ya WhatsApp karo.',
+    lang:'हिंदी', sTotal:'Total numbers', sCalled:'Se baat hui', sJoined:'Network me jude',
+    msgTitle:'WhatsApp intro message', msgHint:'WhatsApp button dabane par yahi message bhara hua khulega. {name} ki jagah unka naam apne aap aa jaayega.',
+    msgLabel:'Message badlo', msgReset:'Pehle wala message wapas lao',
+    search:'Naam ya area dhundho', all:'Sab', dealer:'Dealer', builder:'Builder', onlyPhone:'Sirf number wale',
+    call:'Call karo', wa:'WhatsApp', landline:'Landline, WhatsApp nahi', nophone:'Number nahi mila',
+    copy:'Number copy', copied:'Copy ho gaya', reviews:'reviews', status:'Status chuno',
+    st:{called:'Call kiya',interested:'Interested',joined:'Network me jud gaya',no:'Not interested',dead:'Number band'},
+    empty:'Koi result nahi mila. Search ya filter badlo.',
+    note:'Status isi phone me save rehta hai. Call button na chale to number copy karke dial karo. Data: Google Maps, 23 Oct 2026.',
+    defMsg:'Namaste {name} ji, main [Aapka Naam], property dealer hoon. Aapke area me buyer ya property ho to milkar kaam kar sakte hain, commission share karenge. Kya hum connect kar sakte hain?'
+  }
+};
+function load(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var S = { lang: load('pn_lang','hi'), city:'all', type:'all', q:'', onlyPhone:true, status: load('pn_status',{}), msg: load('pn_msg',{}) };
+function t(k){return T[S.lang][k]}
+function cityName(c){return S.lang==='hi'?(CITY_HI[c]||c):c}
+function digits(p){return (p||'').replace(/\D/g,'')}
+function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
+function shortName(n){return n.split('|')[0].split(' - ')[0].trim()}
+function msgText(){return S.msg[S.lang]||t('defMsg')}
+
+var ICON_CALL='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>';
+var ICON_WA='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.3-4A8 8 0 1 1 8.5 19z"/><path d="M9.5 9.5c.3 1.8 2.2 3.8 4 4.2l1-1 1.5.8"/></svg>';
+
+function applyStatic(){
+  document.documentElement.lang = S.lang==='hi'?'hi':'en';
+  document.querySelectorAll('[data-t]').forEach(function(el){el.textContent=t(el.getAttribute('data-t'))});
+  document.getElementById('lang').textContent=t('lang');
+  document.getElementById('q').placeholder=t('search');
+  document.getElementById('msgBox').value=msgText();
+}
+function renderChips(){
+  var base=DATA.filter(function(d){return !S.onlyPhone||d.p});
+  var cities=[['all',t('all'),base.length]].concat(CITIES.map(function(c){return [c,cityName(c),base.filter(function(d){return d.c===c}).length]}));
+  document.getElementById('cities').innerHTML=cities.map(function(c){return '<button type="button" class="chip" data-city="'+c[0]+'" aria-pressed="'+(S.city===c[0])+'">'+esc(c[1])+'<small>'+c[2]+'</small></button>'}).join('');
+  var types=[['all',t('all')],['Dealer',t('dealer')],['Builder',t('builder')]];
+  document.getElementById('types').innerHTML=types.map(function(x){return '<button type="button" class="chip" data-type="'+x[0]+'" aria-pressed="'+(S.type===x[0])+'">'+esc(x[1])+'</button>'}).join('');
+}
+function renderStats(){
+  var withPhone=DATA.filter(function(d){return d.p});
+  var called=withPhone.filter(function(d){var s=S.status[d.id];return s&&s!=='dead'}).length;
+  var joined=withPhone.filter(function(d){return S.status[d.id]==='joined'}).length;
+  document.getElementById('sTotal').textContent=withPhone.length;
+  document.getElementById('sCalled').textContent=called;
+  document.getElementById('sJoined').textContent=joined;
+}
+function card(d){
+  var dg=digits(d.p), st=S.status[d.id]||'';
+  var place=cityName(d.c)+(d.t?' ('+cityName(d.t)+')':'');
+  var h='<article class="card"><div class="top"><h2 class="name">'+esc(d.n)+'</h2><span class="pill">'+(d.ty==='Dealer'?t('dealer'):t('builder'))+'</span></div>';
+  h+='<div class="meta"><span>'+esc(place)+'</span>'+(d.r?'<span class="star">★ '+d.r+'</span><span>'+(d.v||0)+' '+t('reviews')+'</span>':'')+(st?'<span class="st st-'+st+'">'+esc(t('st')[st])+'</span>':'')+'</div>';
+  if(d.a) h+='<div class="meta">'+esc(d.a)+'</div>';
+  if(dg){
+    h+='<div class="phone">'+esc(d.p)+'</div><div class="actions">';
+    h+='<a class="btn call" href="tel:+'+dg+'" target="_top" data-mark="'+d.id+'">'+ICON_CALL+t('call')+'</a>';
+    if(d.w){
+      var txt=msgText().replace(/\{name\}/g,shortName(d.n));
+      h+='<a class="btn wa" href="https://wa.me/'+dg+'?text='+encodeURIComponent(txt)+'" target="_blank" rel="noopener" data-mark="'+d.id+'">'+ICON_WA+t('wa')+'</a>';
+    } else h+='<span class="btn dis">'+t('landline')+'</span>';
+    h+='</div><div class="foot"><label for="s'+d.id+'" style="position:absolute;left:-9999px">'+t('status')+'</label><select id="s'+d.id+'" data-status="'+d.id+'"><option value="">'+t('status')+'</option>'+STATUSES.map(function(s){return '<option value="'+s+'"'+(s===st?' selected':'')+'>'+esc(t('st')[s])+'</option>'}).join('')+'</select><button type="button" class="copy" data-copy="'+d.id+'">'+t('copy')+'</button></div>';
+  } else h+='<div class="meta">'+t('nophone')+'</div>';
+  return h+'</article>';
+}
+function renderList(){
+  var q=S.q.trim().toLowerCase();
+  var rows=DATA.filter(function(d){
+    if(S.onlyPhone&&!d.p) return false;
+    if(S.city!=='all'&&d.c!==S.city) return false;
+    if(S.type!=='all'&&d.ty!==S.type) return false;
+    if(q&&(d.n+' '+d.a+' '+d.c+' '+(CITY_HI[d.c]||'')).toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+  document.getElementById('list').innerHTML=rows.length?rows.map(card).join(''):'<p class="empty">'+t('empty')+'</p>';
+}
+function all(){applyStatic();renderChips();renderStats();renderList()}
+
+document.getElementById('lang').addEventListener('click',function(){S.lang=S.lang==='hi'?'en':'hi';save('pn_lang',S.lang);all()});
+document.getElementById('q').addEventListener('input',function(e){S.q=e.target.value;renderList()});
+document.getElementById('onlyPhone').addEventListener('change',function(e){S.onlyPhone=e.target.checked;renderChips();renderList()});
+document.getElementById('cities').addEventListener('click',function(e){var b=e.target.closest('[data-city]');if(!b)return;S.city=b.getAttribute('data-city');renderChips();renderList()});
+document.getElementById('types').addEventListener('click',function(e){var b=e.target.closest('[data-type]');if(!b)return;S.type=b.getAttribute('data-type');renderChips();renderList()});
+document.getElementById('msgBox').addEventListener('input',function(e){S.msg[S.lang]=e.target.value;save('pn_msg',S.msg)});
+document.getElementById('msgBox').addEventListener('change',renderList);
+document.getElementById('msgReset').addEventListener('click',function(){delete S.msg[S.lang];save('pn_msg',S.msg);document.getElementById('msgBox').value=msgText();renderList()});
+var list=document.getElementById('list');
+list.addEventListener('change',function(e){var id=e.target.getAttribute('data-status');if(id===null)return;if(e.target.value)S.status[id]=e.target.value;else delete S.status[id];save('pn_status',S.status);renderStats();renderList()});
+list.addEventListener('click',function(e){
+  var c=e.target.closest('[data-copy]');
+  if(c){
+    var d=DATA[+c.getAttribute('data-copy')], num='+'+digits(d.p);
+    var done=function(){c.textContent=t('copied');setTimeout(function(){c.textContent=t('copy')},1500)};
+    try{navigator.clipboard.writeText(num).then(done,function(){selectPhone(c)})}catch(err){selectPhone(c)}
+  }
+});
+function selectPhone(btn){var p=btn.closest('.card').querySelector('.phone');var r=document.createRange();r.selectNodeContents(p);var s=getSelection();s.removeAllRanges();s.addRange(r)}
+all();
+</script>
+
+</body>
+</html>
