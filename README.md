@@ -1,4 +1,4 @@
-# Property Network – APK banane ka tarika
+# PropDeal – APK banane ka tarika
 
 Ye app 9 cities (Saharanpur, Karnal, Yamunanagar, Dehradun, Haridwar, Roorkee, Rishikesh,
 Panipat, Ambala) ke 115 property dealers aur builders ki list dikhata hai. Har contact ke
@@ -27,6 +27,8 @@ flutter build apk --release
 
 APK yahan milegi:
 `build/app/outputs/flutter-apk/app-release.apk`
+
+GitHub pe har push ke baad APK apne aap banti hai: repo ke **Releases** me `PropDeal.apk` milegi.
 
 Ise phone me bhejo (WhatsApp, Drive ya USB se) aur install karo. Phone "unknown apps"
 ki permission maange to de dena.

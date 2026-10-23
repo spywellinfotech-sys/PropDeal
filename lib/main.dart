@@ -5,6 +5,10 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Color(0xFFC9420A),
+    statusBarIconBrightness: Brightness.light,
+  ));
   runApp(const PropertyNetworkApp());
 }
 
@@ -14,10 +18,10 @@ class PropertyNetworkApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Property Network',
+      title: 'PropDeal',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0E6655),
+        colorSchemeSeed: const Color(0xFFF26A0F),
         useMaterial3: true,
       ),
       home: const HomePage(),
@@ -83,6 +87,7 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
+        backgroundColor: const Color(0xFFFFF8F2),
         body: SafeArea(child: WebViewWidget(controller: _controller)),
       ),
     );
