@@ -1,44 +1,24 @@
-# PropDeal – APK banane ka tarika
+# PropDeal
 
-Ye app 9 cities (Saharanpur, Karnal, Yamunanagar, Dehradun, Haridwar, Roorkee, Rishikesh,
-Panipat, Ambala) ke 115 property dealers aur builders ki list dikhata hai. Har contact ke
-saath seedha **Call** aur **WhatsApp** button hai, Hindi/Hinglish dono me.
+Property dealers ka app: apni listings, clients aur doosre dealers ka network.
 
-## Zaroorat
-- Flutter SDK (3.22 ya naya) aur Android SDK (Android Studio ke saath aata hai)
+## App me kya hai
+- **Login:** mobile number + password
+- **Meri Listing:** property add/edit (photo, kimat, area, BHK, location), Sold/Hide, WhatsApp pe share
+- **Network:** PropDeal pe doosre dealers ki active listings, unhe Call/WhatsApp
+- **Clients:** buyer/seller/tenant, budget, follow-up date, matching property
+- **Directory:** Google Maps se 9 cities ke 115 dealers/builders (network banane ke liye)
+- Hindi aur Hinglish
 
-## Steps (computer pe, terminal me)
+## Kahan kya hai
+- `lib/` – Flutter app ka code
+- `assets/` – logo aur directory ka data (`contacts.json`)
+- `android/` – app ka naam, icon, splash, permissions
+- `signing/debug.keystore` – APK sign karne ki key (isi se har nayi APK purani ke upar update hoti hai; ise mat badlo)
+- `.github/workflows/build-apk.yml` – har push pe APK banti hai aur **Releases** me `PropDeal.apk` aati hai
+- `.github/workflows/api-check.yml` – database ki jaanch (haath se chalana)
 
-```bash
-# 1. Flutter ka khaali project banao
-flutter create --org com.spywell --platforms android property_network_app
-
-# 2. Is zip ki ye files us project me copy karke purani files replace karo:
-#    pubspec.yaml
-#    lib/main.dart
-#    assets/index.html
-#    android/app/src/main/AndroidManifest.xml
-
-# 3. Packages lao aur APK banao
-cd property_network_app
-flutter pub get
-flutter build apk --release
-```
-
-APK yahan milegi:
-`build/app/outputs/flutter-apk/app-release.apk`
-
-GitHub pe har push ke baad APK apne aap banti hai: repo ke **Releases** me `PropDeal.apk` milegi.
-
-Ise phone me bhejo (WhatsApp, Drive ya USB se) aur install karo. Phone "unknown apps"
-ki permission maange to de dena.
-
-## Data badalna ho to
-Saara data aur design `assets/index.html` me hai. Nayi list chahiye to bas ye file
-badlo aur `flutter build apk --release` dobara chalao.
-
-## Dhyan rahe
-- Status (Call kiya, Interested…) aur WhatsApp message isi phone me save rehte hain.
-- `flutter build apk --release` debug key se sign hoti hai. Ye apne phone pe ya
-  doston ko dene ke liye theek hai. Play Store pe daalna ho to apni release key se sign
-  karna padega.
+## Backend
+Supabase project **TransWell** (`toouzmbhlltipjjcyqim`) me `pd_` naam wali tables:
+`pd_dealers`, `pd_listings`, `pd_clients`, photo bucket `pd-photos`, signup function `pd-signup`.
+TransWell ka data alag hai; PropDeal ke accounts `<mobile>@phone.propdeal.app` email se bante hain.

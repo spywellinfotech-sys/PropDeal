@@ -31,17 +31,22 @@ jobs:
         run: |
           flutter create --org com.spywell --platforms android --project-name property_network ../app
           cp pubspec.yaml ../app/pubspec.yaml
-          cp lib/main.dart ../app/lib/main.dart
-          mkdir -p ../app/assets
-          cp assets/index.html ../app/assets/index.html
+          rm -rf ../app/lib && cp -r lib ../app/lib
+          cp -r assets ../app/assets
           cp android/app/src/main/AndroidManifest.xml ../app/android/app/src/main/AndroidManifest.xml
           cp -r android/app/src/main/res/. ../app/android/app/src/main/res/
           rm -rf ../app/test
 
-      - name: APK build
+      - name: Code check
         working-directory: ../app
         run: |
           flutter pub get
+          flutter analyze --no-fatal-infos --no-fatal-warnings lib
+
+      - name: APK build
+        working-directory: ../app
+        run: |
+          mkdir -p ~/.android && cp $GITHUB_WORKSPACE/signing/debug.keystore ~/.android/debug.keystore
           flutter build apk --release
           cp build/app/outputs/flutter-apk/app-release.apk $GITHUB_WORKSPACE/PropDeal.apk
 
@@ -54,6 +59,6 @@ jobs:
       - name: Release me APK daalo (phone se seedha download)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: PropDeal v1.0.${{ github.run_number }}
+          tag_name: v2.0.${{ github.run_number }}
+          name: PropDeal v2.0.${{ github.run_number }}
           files: PropDeal.apk

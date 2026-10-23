@@ -1,0 +1,65 @@
+name: API check
+
+# Manual check that signup, login, listings and security rules work.
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      URL: https://toouzmbhlltipjjcyqim.supabase.co
+      KEY: sb_publishable_zukyv1ySo8aD78ACjyCxnA_axXqLSxs
+    steps:
+      - name: Signup, login, listing, security
+        run: |
+          set -u
+          fail() { echo "FAIL: $1"; exit 1; }
+          N=$(printf '%05d' $(( GITHUB_RUN_ID % 100000 )))
+          A="98765$N"; B="98764$N"
+          echo "Test phones: $A $B"
+
+          signup() {
+            curl -s -o /tmp/s.json -w '%{http_code}' -X POST "$URL/functions/v1/pd-signup" \
+              -H "apikey: $KEY" -H "Content-Type: application/json" \
+              -d "{\"phone\":\"$1\",\"password\":\"test1234\",\"name\":\"Test $1\",\"city\":\"Karnal\"}"
+          }
+          login() {
+            curl -s -X POST "$URL/auth/v1/token?grant_type=password" -H "apikey: $KEY" \
+              -H "Content-Type: application/json" \
+              -d "{\"email\":\"$1@phone.propdeal.app\",\"password\":\"test1234\"}" | jq -r .access_token
+          }
+
+          c=$(signup $A); echo "signup A -> $c $(cat /tmp/s.json)"; [ "$c" = 200 ] || fail "signup A"
+          c=$(signup B12); echo "bad phone -> $c"; [ "$c" = 400 ] || fail "bad phone accepted"
+          c=$(signup $A); echo "duplicate -> $c"; [ "$c" = 409 ] || fail "duplicate accepted"
+          c=$(signup $B); echo "signup B -> $c"; [ "$c" = 200 ] || fail "signup B"
+
+          TA=$(login $A); TB=$(login $B)
+          [ ${#TA} -gt 50 ] || fail "login A"; [ ${#TB} -gt 50 ] || fail "login B"
+          UA=$(curl -s "$URL/auth/v1/user" -H "apikey: $KEY" -H "Authorization: Bearer $TA" | jq -r .id)
+
+          L=$(curl -s -X POST "$URL/rest/v1/pd_listings" -H "apikey: $KEY" -H "Authorization: Bearer $TA" \
+            -H "Content-Type: application/json" -H "Prefer: return=representation" \
+            -d "{\"dealer_id\":\"$UA\",\"purpose\":\"sale\",\"ptype\":\"plot\",\"title\":\"Test plot\",\"price\":2500000,\"city\":\"Karnal\"}")
+          echo "insert -> $L"; LID=$(echo "$L" | jq -r '.[0].id'); [ "$LID" != null ] || fail "insert listing"
+
+          NB=$(curl -s "$URL/rest/v1/pd_listings?select=id,title,pd_dealers(name,phone)&id=eq.$LID" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $TB")
+          echo "B sees -> $NB"; [ "$(echo "$NB" | jq length)" = 1 ] || fail "B cannot see A listing"
+
+          AN=$(curl -s "$URL/rest/v1/pd_listings?select=id" -H "apikey: $KEY")
+          echo "anon sees -> $AN"; echo "$AN" | jq -e 'type=="array" and length==0' >/dev/null || echo "$AN" | grep -qi "denied\|42501" || fail "anon can read listings"
+
+          UP=$(curl -s -X PATCH "$URL/rest/v1/pd_listings?id=eq.$LID" -H "apikey: $KEY" -H "Authorization: Bearer $TB" \
+            -H "Content-Type: application/json" -H "Prefer: return=representation" -d '{"price":1}')
+          echo "B edits A -> $UP"; [ "$(echo "$UP" | jq length)" = 0 ] || fail "B could edit A listing"
+
+          CL=$(curl -s -X POST "$URL/rest/v1/pd_clients" -H "apikey: $KEY" -H "Authorization: Bearer $TA" \
+            -H "Content-Type: application/json" -H "Prefer: return=representation" \
+            -d "{\"dealer_id\":\"$UA\",\"name\":\"Client X\",\"kind\":\"buyer\"}")
+          echo "client -> $CL"
+          CB=$(curl -s "$URL/rest/v1/pd_clients?select=id" -H "apikey: $KEY" -H "Authorization: Bearer $TB")
+          echo "B sees A clients -> $CB"; [ "$(echo "$CB" | jq length)" = 0 ] || fail "clients leak"
+
+          echo "ALL CHECKS PASSED"
